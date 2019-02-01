@@ -484,7 +484,54 @@ public class Python {
             args = {"object"}
     )
     public static org.python.types.Str ascii(org.python.Object object) {
-        throw new org.python.exceptions.NotImplementedError("Builtin function 'ascii' not implemented");
+        //#throw new org.python.exceptions.NotImplementedError("Builtin function 'ascii' not implemented");
+        
+        String objectString = object.toString();
+        String newString="";
+
+        StringBuilder sb = new StringBuilder();
+        boolean hasDoubleQuote = false;
+        boolean hasSingleQuote = false;
+
+        for (char c : objectString.toCharArray()) {
+            if (c == '\'') {
+                hasSingleQuote = true;
+            } else if (c == '"') {
+                hasDoubleQuote = true;
+            }
+
+            if (c == '\n') {
+                sb.append("\\n");
+            } else if (c == '\t') {
+                sb.append("\\t");
+            } else if (c == '\r') {
+                sb.append("\\r");
+            } else if (c == '\\') {
+                sb.append("\\\\");
+            // ASCII Non-Printable
+            // } else if (c <= 0x1f || c >= 0x7f && c <= 0xa0 || c == 0xad) {
+            }else if((int)c>160){
+                sb.append(String.format("x%02x", (int) c));
+            } else {
+                sb.append((char) c);
+            }
+        }
+
+        // Decide if we wanna wrap the result with single or double quotes
+        String quote;
+        String repr = sb.toString();
+
+        if (hasSingleQuote) {
+            if (hasDoubleQuote) {
+                quote = "'";
+                repr = repr.replaceAll("'", "\\\\'");
+            } else {
+                quote = "\"";
+            }
+        } else {
+            quote = "'";
+        }
+        return new org.python.types.Str(quote + repr + quote);
     }
 
     @org.python.Method(
